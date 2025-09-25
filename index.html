@@ -5,77 +5,216 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>RC 組合せチェッカー</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:900px;margin:20px auto;padding:16px}
-    h1{font-size:20px}
-    label{display:block;margin-top:8px}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    select,input[type=number]{padding:6px;border-radius:6px;border:1px solid #ccc}
-    .box{border:1px solid #eee;padding:12px;border-radius:8px;margin-top:12px;background:#fafafa}
-    .result{padding:12px;border-radius:8px;margin-top:12px}
-    .ok{background:#e6ffed;border:1px solid #9ee09b}
-    .ng{background:#fff0f0;border:1px solid #f09b9b}
-    small{color:#666}
-    button{margin-top:12px;padding:8px 12px;border-radius:8px;border:none;background:#2563eb;color:white}
-    .flex{display:flex;gap:8px;align-items:center}
-    .muted{color:#555;font-size:13px}
+    :root {
+      --primary-color: #007bff;
+      --success-bg: #d4edda;
+      --success-border: #c3e6cb;
+      --error-bg: #f8d7da;
+      --error-border: #f5c6cb;
+      --light-gray: #f8f9fa;
+      --gray-border: #dee2e6;
+      --text-color: #212529;
+      --muted-color: #6c757d;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background-color: #f4f7f9;
+      color: var(--text-color);
+    }
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+    }
+    h1 {
+      font-size: 24px;
+      color: var(--primary-color);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .description {
+      color: var(--muted-color);
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--gray-border);
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 16px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    fieldset {
+      border: 1px solid var(--gray-border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    legend {
+      font-weight: bold;
+      padding: 0 8px;
+      color: var(--primary-color);
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    select, input[type=number] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      box-sizing: border-box; /* Ensures padding doesn't affect width */
+    }
+    .component-selectors {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+    }
+    .radio-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      padding: 10px;
+      border: 1px solid var(--gray-border);
+      border-radius: 8px;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+    .radio-group input[type="radio"] {
+      display: none; /* Hide the default radio button */
+    }
+    .radio-group input[type="radio"]:checked + span {
+      font-weight: bold;
+    }
+     .radio-group label:has(input:checked) {
+       background-color: #e7f3ff;
+       border-color: var(--primary-color);
+     }
+    button {
+      margin-top: 20px;
+      padding: 14px 20px;
+      border-radius: 8px;
+      border: none;
+      background-color: var(--primary-color);
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      width: 100%;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+      border: 1px solid;
+    }
+    .result strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+    .result div {
+      margin-bottom: 4px;
+    }
+    .ok {
+      background: var(--success-bg);
+      border-color: var(--success-border);
+    }
+    .ng {
+      background: var(--error-bg);
+      border-color: var(--error-border);
+    }
+    .info-box {
+        background-color: var(--light-gray);
+        border: 1px solid var(--gray-border);
+    }
+    .small-text{
+        font-size: 12px;
+        color: var(--muted-color);
+        line-height: 1.5;
+    }
   </style>
 </head>
 <body>
-  <h1>RC 組合せチェッカー</h1>
-  <p class="muted">与えられた部品候補から、指定した抵抗/コンデンサの直列・並列接続による有効値を計算し、指定周波数に対する目標時間（1/2T, 1/3T, 2/3T）と比較して誤差（%）を算出します。誤差が 5% 未満かどうかを判定します。</p>
+  <div class="container">
+    <h1>RC 組合せチェッカー</h1>
+    <p class="description">部品候補からRCの組合せを選択し、指定周波数に対する時定数（τ = 0.7RC）の誤差を計算します。</p>
 
-  <div class="box">
-    <label>周波数 f (kHz):
-      <input id="freq" type="number" step="any" value="10">
-    </label>
+    <div class="card">
+      <fieldset>
+        <legend>周波数設定</legend>
+        <label for="freq">周波数 f (kHz)</label>
+        <input id="freq" type="number" step="any" value="10">
 
-    <label>計算確認対象:
-      <select id="targetType">
-        <option value="1/2">1/2T</option>
-        <option value="1/3">1/3T</option>
-        <option value="2/3">2/3T</option>
-      </select>
-    </label>
+        <label for="targetType" style="margin-top:16px;">計算確認対象</label>
+        <select id="targetType">
+          <option value="1/2">1/2T</option>
+          <option value="1/3">1/3T</option>
+          <option value="2/3">2/3T</option>
+        </select>
+      </fieldset>
 
-    <hr>
-    <strong>抵抗 (R) の選択（kΩ） — 最大 3 個まで。不要な欄は "None" を選択してください。</strong>
-    <div class="row">
-      <select id="R1"></select>
-      <select id="R2"></select>
-      <select id="R3"></select>
+      <fieldset>
+        <legend>抵抗 (R) の選択</legend>
+        <small class="description">最大 3 個まで (kΩ)。不要な欄は "None" を選択。</small>
+        <div class="component-selectors">
+          <select id="R1"></select>
+          <select id="R2"></select>
+          <select id="R3"></select>
+        </div>
+        <div class="radio-group">
+          <label><input type="radio" name="Rmode" value="series" checked><span>直列</span></label>
+          <label><input type="radio" name="Rmode" value="parallel"><span>並列</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>コンデンサ (C) の選択</legend>
+        <small class="description">最大 2 個まで (pF)。不要な欄は "None" を選択。</small>
+        <div class="component-selectors">
+          <select id="C1"></select>
+          <select id="C2"></select>
+        </div>
+        <div class="radio-group">
+          <label><input type="radio" name="Cmode" value="parallel" checked><span>並列</span></label>
+          <label><input type="radio" name="Cmode" value="series"><span>直列</span></label>
+        </div>
+      </fieldset>
+
+      <button id="calcBtn">計算する</button>
     </div>
-    <div class="row" style="margin-top:6px">
-      <label class="flex"><input type="radio" name="Rmode" value="series" checked> 直列</label>
-      <label class="flex"><input type="radio" name="Rmode" value="parallel"> 並列</label>
-    </div>
 
-    <hr>
-    <strong>コンデンサ (C) の選択（pF） — 最大 2 個まで。不要な欄は "None" を選択してください。</strong>
-    <div class="row">
-      <select id="C1"></select>
-      <select id="C2"></select>
-    </div>
-    <div class="row" style="margin-top:6px">
-      <label class="flex"><input type="radio" name="Cmode" value="parallel" checked> 並列</label>
-      <label class="flex"><input type="radio" name="Cmode" value="series"> 直列</label>
-    </div>
-
-    <button id="calcBtn">計算する</button>
+    <div id="output"></div>
   </div>
-
-  <div id="output"></div>
 
   <script>
     // 候補リスト
-    const R_values = [0.39,1,2,3.9,5.1,6.2,6.8,10,20,30,39,51,56,100]; // kΩ
-    const C_values = [10,47,100,200,330,470,1000,2200,4700]; // pF
+    const R_values = [0.39, 1, 2, 3.9, 5.1, 6.2, 6.8, 10, 20, 30, 39, 51, 56, 100]; // kΩ
+    const C_values = [10, 47, 100, 200, 330, 470, 1000, 2200, 4700]; // pF
 
-    function populateSelect(sel, values, includeNone=true){
+    function populateSelect(sel, values, includeNone = true) {
       sel.innerHTML = '';
-      if(includeNone){
-        const o = document.createElement('option'); o.value='none'; o.text='None'; sel.appendChild(o);
+      if (includeNone) {
+        const o = document.createElement('option'); o.value = 'none'; o.text = 'None'; sel.appendChild(o);
       }
-      values.forEach(v=>{
+      values.forEach(v => {
         const o = document.createElement('option'); o.value = v; o.text = v;
         sel.appendChild(o);
       });
@@ -87,59 +226,56 @@
     populateSelect(document.getElementById('C1'), C_values, true);
     populateSelect(document.getElementById('C2'), C_values, true);
 
-    function parseSelectedValues(selects){
-      const vals = [];
-      for(const s of selects){
-        if(s.value === 'none') continue;
-        vals.push(parseFloat(s.value));
-      }
-      return vals;
+    function parseSelectedValues(selects) {
+      return Array.from(selects)
+        .map(s => s.value)
+        .filter(v => v !== 'none')
+        .map(v => parseFloat(v));
     }
 
-    function eqResistors(vals, mode){
-      if(vals.length === 0) return null;
-      if(mode === 'series'){
-        const sum = vals.reduce((a,b)=>a+b,0);
-        return {value: sum, desc: vals.map(v=>v+'kΩ').join(' + ')+' (直列)'};
+    function eqResistors(vals, mode) {
+      if (vals.length === 0) return null;
+      if (mode === 'series') {
+        const sum = vals.reduce((a, b) => a + b, 0);
+        return { value: sum, desc: vals.map(v => `${v}kΩ`).join(' + ') + ' (直列)' };
       } else {
-        if(vals.length === 1) return {value: vals[0], desc: vals[0]+'kΩ (並列)'};
-        const inv = vals.reduce((a,b)=>a + 1.0/b,0);
-        const req = 1.0/inv;
-        return {value: req, desc: vals.map(v=>v+'kΩ').join(' || ')+' (並列)'};
+        if (vals.length === 1) return { value: vals[0], desc: `${vals[0]}kΩ` };
+        const inv = vals.reduce((a, b) => a + 1.0 / b, 0);
+        const req = 1.0 / inv;
+        return { value: req, desc: vals.map(v => `${v}kΩ`).join(' || ') + ' (並列)' };
       }
     }
 
-    function eqCaps(vals, mode){
-      if(vals.length === 0) return null;
-      if(mode === 'parallel'){
-        const sum = vals.reduce((a,b)=>a+b,0);
-        return {value: sum, desc: vals.map(v=>v+'pF').join(' + ')+' (並列)'};
+    function eqCaps(vals, mode) {
+      if (vals.length === 0) return null;
+      if (mode === 'parallel') {
+        const sum = vals.reduce((a, b) => a + b, 0);
+        return { value: sum, desc: vals.map(v => `${v}pF`).join(' + ') + ' (並列)' };
       } else {
-        if(vals.length === 1) return {value: vals[0], desc: vals[0]+'pF (直列)'};
-        const inv = vals.reduce((a,b)=>a + 1.0/b,0);
-        const ceq = 1.0/inv;
-        return {value: ceq, desc: vals.map(v=>v+'pF').join(' || ')+' (直列)'};
+        if (vals.length === 1) return { value: vals[0], desc: `${vals[0]}pF` };
+        const inv = vals.reduce((a, b) => a + 1.0 / b, 0);
+        const ceq = 1.0 / inv;
+        return { value: ceq, desc: vals.map(v => `${v}pF`).join(' || ') + ' (直列)' };
       }
     }
 
-    function computeTau(R_kohm, C_pf){
-      // R in kΩ, C in pF -> seconds
-      // tau = 0.7 * R(kΩ) * 1000 * C(pF) * 1e-12
+    function computeTau(R_kohm, C_pf) {
       return 0.7 * R_kohm * 1000.0 * C_pf * 1e-12;
     }
 
-    document.getElementById('calcBtn').addEventListener('click', ()=>{
+    document.getElementById('calcBtn').addEventListener('click', () => {
       const f = parseFloat(document.getElementById('freq').value);
-      if(isNaN(f) || f <= 0){ alert('正しい周波数を入力してください'); return; }
+      if (isNaN(f) || f <= 0) { alert('正しい周波数を入力してください'); return; }
+
       const targetType = document.getElementById('targetType').value;
       const T = 1.0 / (f * 1000.0);
       let target;
-      if(targetType === '1/2') target = T/2.0;
-      else if(targetType === '1/3') target = T/3.0;
-      else target = 2.0*T/3.0;
+      if (targetType === '1/2') target = T / 2.0;
+      else if (targetType === '1/3') target = T / 3.0;
+      else target = 2.0 * T / 3.0;
 
-      const R_sel = [document.getElementById('R1'), document.getElementById('R2'), document.getElementById('R3')];
-      const C_sel = [document.getElementById('C1'), document.getElementById('C2')];
+      const R_sel = document.querySelectorAll('#R1, #R2, #R3');
+      const C_sel = document.querySelectorAll('#C1, #C2');
       const R_vals = parseSelectedValues(R_sel);
       const C_vals = parseSelectedValues(C_sel);
       const R_mode = document.querySelector('input[name="Rmode"]:checked').value;
@@ -151,32 +287,39 @@
       const out = document.getElementById('output');
       out.innerHTML = '';
 
-      const info = document.createElement('div'); info.className='box';
-      info.innerHTML = `<div><strong>入力</strong></div>
-        <div>f = ${f} kHz (T = ${T.toExponential(6)} s)</div>
-        <div>対象 = ${targetType}  (目標 = ${target.toExponential(6)} s)</div>
-        <div>R 構成: ${R_eq?R_eq.desc:'(未選択)'}  -> 有効 R = ${R_eq?R_eq.value+' kΩ':''}</div>
-        <div>C 構成: ${C_eq?C_eq.desc:'(未選択)'}  -> 有効 C = ${C_eq?C_eq.value+' pF':''}</div>`;
-      out.appendChild(info);
-
-      if(!R_eq || !C_eq){
-        const warn = document.createElement('div'); warn.className='result ng'; warn.textContent = 'R または C が選択されていません。'; out.appendChild(warn); return;
+      if (!R_eq || !C_eq) {
+        out.innerHTML = `<div class="result ng">抵抗 (R) とコンデンサ (C) を両方選択してください。</div>`;
+        return;
       }
 
       const tau = computeTau(R_eq.value, C_eq.value);
-      const err_percent = Math.abs((tau - target)/target) * 100.0;
+      const err_percent = Math.abs((tau - target) / target) * 100.0;
+      const isOk = err_percent < 5.0;
 
-      const resDiv = document.createElement('div');
-      resDiv.className = 'result ' + (err_percent < 5.0 ? 'ok' : 'ng');
-      resDiv.innerHTML = `<div><strong>計算結果</strong></div>
-        <div>0.7 * R * C = ${tau.toExponential(6)} s</div>
-        <div>誤差 = ${err_percent.toFixed(2)} %</div>
-        <div>判定: ${err_percent < 5.0 ? '<strong>合格 (誤差 < 5%)</strong>' : '<strong>不合格 (誤差 ≥ 5%)</strong>'}</div>`;
-      out.appendChild(resDiv);
-
-      const detail = document.createElement('div'); detail.className='box';
-      detail.innerHTML = `<small>計算式: τ = 0.7 × R × C （R: kΩ, C: pF）。内部では R(kΩ)→Ω、C(pF)→F に変換して秒単位で計算しています。<br>つまり τ = 0.7 × R(kΩ) × 1000 × C(pF) × 1e-12 [s]</small>`;
-      out.appendChild(detail);
+      const resultHTML = `
+        <div class="card info-box">
+          <div><strong>入力情報</strong></div>
+          <div>f = ${f} kHz (T = ${T.toExponential(4)} s)</div>
+          <div>対象 = ${targetType} (目標 = ${target.toExponential(4)} s)</div>
+          <hr style="border:0; border-top:1px solid #ddd; margin: 8px 0;">
+          <div>R 構成: ${R_eq.desc}</div>
+          <div><strong>有効R = ${R_eq.value.toFixed(2)} kΩ</strong></div>
+          <hr style="border:0; border-top:1px solid #ddd; margin: 8px 0;">
+          <div>C 構成: ${C_eq.desc}</div>
+          <div><strong>有効C = ${C_eq.value.toFixed(2)} pF</strong></div>
+        </div>
+        <div class="result ${isOk ? 'ok' : 'ng'}">
+          <strong>計算結果</strong>
+          <div>0.7 × R × C = ${tau.toExponential(4)} s</div>
+          <div>誤差 = <strong>${err_percent.toFixed(2)} %</strong></div>
+          <div>判定: ${isOk ? '<strong>合格 (誤差 < 5%)</strong>' : '<strong>不合格 (誤差 ≥ 5%)</strong>'}</div>
+        </div>
+        <div class="card small-text">
+          計算式: τ = 0.7 × R × C<br>
+          内部では R(kΩ)→Ω、C(pF)→F に変換して秒単位で計算しています。
+        </div>
+      `;
+      out.innerHTML = resultHTML;
     });
   </script>
 </body>
